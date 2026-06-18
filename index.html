@@ -11,64 +11,135 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
-#map { position:absolute; top:110px; left:0; right:0; bottom:0; }
+
+#map {
+  position:absolute;
+  top:110px;
+  left:0;
+  right:0;
+  bottom:0;
+}
 
 #header {
-  position:fixed; top:0; left:0; right:0; z-index:100;
-  background:#1a3a5c; color:white; padding:10px 14px;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:100;
+  background:#1a3a5c;
+  color:white;
+  padding:10px 14px;
   box-shadow:0 2px 8px rgba(0,0,0,0.25);
 }
 
-.header-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.header-top {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
 .h-paw { font-size:22px; }
 .h-title { font-size:17px; font-family:Georgia,serif; }
 .h-sub { color:#b9d1e8; font-size:11px; margin-left:auto; }
-.h-pill { background:#e8a020; color:#fff; font-size:11px; font-weight:bold; border-radius:12px; padding:4px 10px; }
 
-#controls { display:flex; gap:6px; overflow-x:auto; }
-#searchBox { min-width:170px; border:none; border-radius:14px; padding:7px 11px; font-size:12px; }
+.h-pill {
+  background:#e8a020;
+  color:#fff;
+  font-size:11px;
+  font-weight:bold;
+  border-radius:12px;
+  padding:4px 10px;
+}
+
+#controls {
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+}
+
+#searchBox {
+  min-width:170px;
+  border:none;
+  border-radius:14px;
+  padding:7px 11px;
+  font-size:12px;
+}
 
 button.filter-btn {
-  border:none; border-radius:14px; padding:7px 11px; font-size:12px;
-  cursor:pointer; background:#fff; color:#1a3a5c; white-space:nowrap;
-}
-button.filter-btn.active { background:#e8a020; color:#fff; }
-
-.pin-el {
-  width:38px; height:38px; border-radius:50%; border:3px solid #fff;
-  box-shadow:0 2px 8px rgba(0,0,0,0.35);
-  display:flex; align-items:center; justify-content:center;
-  font-size:19px; cursor:pointer; transition:transform 0.15s; position:relative;
-}
-.pin-el:hover { transform:scale(1.18); }
-.pin-standard { background:#3d8bbd; }
-.pin-featured { background:#1a3a5c; }
-
-.pin-star {
-  position:absolute; top:-5px; right:-5px; width:16px; height:16px;
-  background:#e8a020; border-radius:50%; border:2px solid #fff;
-  font-size:10px; line-height:13px; text-align:center; color:#fff; font-weight:bold;
+  border:none;
+  border-radius:14px;
+  padding:7px 11px;
+  font-size:12px;
+  cursor:pointer;
+  background:#fff;
+  color:#1a3a5c;
+  white-space:nowrap;
 }
 
-.wt-popup { font-family:Arial,sans-serif; width:250px; }
-.p-name { font-size:16px; font-weight:bold; color:#1a3a5c; margin-bottom:3px; }
-.p-type { font-size:12px; color:#777; margin-bottom:10px; }
+button.filter-btn.active {
+  background:#e8a020;
+  color:#fff;
+}
+
+.wt-popup {
+  font-family:Arial,sans-serif;
+  width:250px;
+}
+
+.p-name {
+  font-size:16px;
+  font-weight:bold;
+  color:#1a3a5c;
+  margin-bottom:3px;
+}
+
+.p-type {
+  font-size:12px;
+  color:#777;
+  margin-bottom:10px;
+}
 
 .p-reward {
-  background:#e8f4f0; border:1px solid #7ecfb5;
-  border-radius:8px; padding:9px 10px; margin-bottom:9px;
+  background:#e8f4f0;
+  border:1px solid #7ecfb5;
+  border-radius:8px;
+  padding:9px 10px;
+  margin-bottom:9px;
 }
-.p-reward b { display:block; color:#1a6b50; font-size:13px; margin-bottom:3px; }
-.p-reward span { color:#2a8060; font-size:13px; }
+
+.p-reward b {
+  display:block;
+  color:#1a6b50;
+  font-size:13px;
+  margin-bottom:3px;
+}
+
+.p-reward span {
+  color:#2a8060;
+  font-size:13px;
+}
 
 .p-links a {
-  display:block; background:#1a3a5c; color:#fff; text-decoration:none;
-  text-align:center; border-radius:8px; padding:8px; font-size:12px; margin-top:6px;
+  display:block;
+  background:#1a3a5c;
+  color:#fff;
+  text-decoration:none;
+  text-align:center;
+  border-radius:8px;
+  padding:8px;
+  font-size:12px;
+  margin-top:6px;
 }
 
 .p-badge {
-  font-size:11px; background:#fff4e0; border:1px solid #e8c96c;
-  border-radius:6px; padding:6px 8px; color:#8a5c00; margin-top:8px;
+  font-size:11px;
+  background:#fff4e0;
+  border:1px solid #e8c96c;
+  border-radius:6px;
+  padding:6px 8px;
+  color:#8a5c00;
+  margin-top:8px;
 }
 
 .maplibregl-popup-content {
@@ -79,13 +150,38 @@ button.filter-btn.active { background:#e8a020; color:#fff; }
 }
 
 #legend {
-  position:fixed; bottom:20px; left:12px; z-index:100;
-  background:rgba(255,255,255,0.96); border:1px solid #d0c8b0;
-  border-radius:10px; padding:10px 14px; font-size:12px; color:#444;
+  position:fixed;
+  bottom:20px;
+  left:12px;
+  z-index:100;
+  background:rgba(255,255,255,0.96);
+  border:1px solid #d0c8b0;
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:12px;
+  color:#444;
 }
-#legend b { display:block; margin-bottom:7px; color:#1a3a5c; font-size:13px; }
-.lr { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-.ld { width:13px; height:13px; border-radius:50%; border:2px solid #fff; }
+
+#legend b {
+  display:block;
+  margin-bottom:7px;
+  color:#1a3a5c;
+  font-size:13px;
+}
+
+.lr {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:4px;
+}
+
+.ld {
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  border:2px solid #fff;
+}
 
 @media(max-width:700px) {
   #map { top:126px; }
@@ -128,8 +224,7 @@ button.filter-btn.active { background:#e8a020; color:#fff; }
 <script>
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uZBCC_1X-zdLeyW10Bw_E5N63fToD-dv3PcwjfhQHX4/gviz/tq?tqx=out:csv&sheet=Sheet1";
 
-let venues = [];
-let markers = [];
+let allVenues = [];
 let activeFilter = "All";
 let searchTerm = "";
 let userLocationMarker = null;
@@ -137,8 +232,8 @@ let userLocationMarker = null;
 const map = new maplibregl.Map({
   container: "map",
   style: "https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776",
-  center: [-0.1500, 50.8290],
-  zoom: 12,
+  center: [-0.1450, 50.8270],
+  zoom: 12.5,
   minZoom: 5,
   maxZoom: 19,
   attributionControl: true
@@ -194,20 +289,28 @@ function csvToObjects(csv) {
 }
 
 function normaliseVenue(row) {
+  let lat = parseFloat(row.Latitude);
+  let lng = parseFloat(row.Longitude);
+
+  if (Math.abs(lat) < 1 && Math.abs(lng) > 40) {
+    const oldLat = lat;
+    lat = lng;
+    lng = oldLat;
+  }
+
   return {
     name: clean(row.Name),
     type: clean(row.Type),
     area: clean(row.Area),
     address: clean(row.Address),
-    lat: parseFloat(row.Latitude),
-    lng: parseFloat(row.Longitude),
+    lat: lat,
+    lng: lng,
     reward: clean(row.Reward),
     website: clean(row.Website),
     instagram: clean(row.Instagram),
     featured: isYes(row.Featured),
     webOnly: isYes(row["Web Only"]),
-    status: clean(row.Status),
-    partnerStatus: clean(row["Partner Status"])
+    status: clean(row.Status)
   };
 }
 
@@ -216,26 +319,25 @@ async function loadVenues() {
     const response = await fetch(GOOGLE_SHEET_CSV_URL + "&cachebust=" + Date.now());
     const csv = await response.text();
 
-    venues = csvToObjects(csv)
+    allVenues = csvToObjects(csv)
       .map(normaliseVenue)
       .filter(v =>
         v.name &&
-        v.status &&
-        v.status.toLowerCase() === "live"
+        v.status.toLowerCase() === "live" &&
+        !v.webOnly &&
+        !isNaN(v.lat) &&
+        !isNaN(v.lng)
       );
 
-    renderMarkers();
+    updateMapData();
   } catch (error) {
     console.error("Could not load venue sheet:", error);
     document.getElementById("venueCount").textContent = "Sheet error";
   }
 }
 
-function renderMarkers() {
-  markers.forEach(marker => marker.remove());
-  markers = [];
-
-  const visibleVenues = venues.filter(v => {
+function getFilteredVenues() {
+  return allVenues.filter(v => {
     const text = `${v.name} ${v.type} ${v.area} ${v.address}`.toLowerCase();
     const matchesSearch = text.includes(searchTerm);
 
@@ -246,27 +348,121 @@ function renderMarkers() {
 
     return matchesSearch && matchesFilter;
   });
+}
 
-  visibleVenues.forEach(v => {
-    if (v.webOnly || isNaN(v.lat) || isNaN(v.lng)) return;
+function venuesToGeoJSON(venues) {
+  return {
+    type: "FeatureCollection",
+    features: venues.map((v, index) => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [v.lng, v.lat]
+      },
+      properties: {
+        id: index,
+        name: v.name,
+        type: v.type,
+        area: v.area,
+        address: v.address,
+        reward: v.reward,
+        website: v.website,
+        instagram: v.instagram,
+        featured: v.featured ? "yes" : "no"
+      }
+    }))
+  };
+}
 
-    const el = document.createElement("div");
-    el.className = "pin-el " + (v.featured ? "pin-featured" : "pin-standard");
-    el.innerHTML = "🐾" + (v.featured ? '<div class="pin-star">★</div>' : "");
-
-    const popup = new maplibregl.Popup({ offset:22, maxWidth:"280px" })
-      .setHTML(createPopupHTML(v));
-
-    const marker = new maplibregl.Marker({ element:el })
-      .setLngLat([v.lng, v.lat])
-      .setPopup(popup)
-      .addTo(map);
-
-    markers.push(marker);
+function addVenueLayers() {
+  map.addSource("venues", {
+    type: "geojson",
+    data: venuesToGeoJSON([])
   });
 
+  map.addLayer({
+    id: "venue-circles",
+    type: "circle",
+    source: "venues",
+    paint: {
+      "circle-radius": [
+        "case",
+        ["==", ["get", "featured"], "yes"], 15,
+        13
+      ],
+      "circle-color": [
+        "case",
+        ["==", ["get", "featured"], "yes"], "#1a3a5c",
+        "#3d8bbd"
+      ],
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 3
+    }
+  });
+
+  map.addLayer({
+    id: "venue-paws",
+    type: "symbol",
+    source: "venues",
+    layout: {
+      "text-field": "🐾",
+      "text-size": 16,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    }
+  });
+
+  map.addLayer({
+    id: "featured-stars",
+    type: "symbol",
+    source: "venues",
+    filter: ["==", ["get", "featured"], "yes"],
+    layout: {
+      "text-field": "★",
+      "text-size": 11,
+      "text-offset": [1, -1],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    paint: {
+      "text-color": "#e8a020",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1
+    }
+  });
+
+  map.on("click", "venue-circles", openVenuePopup);
+  map.on("click", "venue-paws", openVenuePopup);
+
+  map.on("mouseenter", "venue-circles", () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+
+  map.on("mouseleave", "venue-circles", () => {
+    map.getCanvas().style.cursor = "";
+  });
+}
+
+function updateMapData() {
+  const visibleVenues = getFilteredVenues();
+  const source = map.getSource("venues");
+
+  if (source) {
+    source.setData(venuesToGeoJSON(visibleVenues));
+  }
+
   document.getElementById("venueCount").textContent =
-    markers.length + " venues live";
+    visibleVenues.length + " venues live";
+}
+
+function openVenuePopup(e) {
+  const props = e.features[0].properties;
+  const coordinates = e.features[0].geometry.coordinates.slice();
+
+  new maplibregl.Popup({ offset: 18, maxWidth: "280px" })
+    .setLngLat(coordinates)
+    .setHTML(createPopupHTML(props))
+    .addTo(map);
 }
 
 function createPopupHTML(v) {
@@ -278,7 +474,7 @@ function createPopupHTML(v) {
     ? `<a href="${escapeHTML(v.instagram)}" target="_blank" rel="noopener">View Instagram</a>`
     : "";
 
-  const badge = v.featured
+  const badge = v.featured === "yes"
     ? `<div class="p-badge">⭐ Featured Waggly Tails venue</div>`
     : `<div class="p-badge">📍 Listed Waggly Tails venue</div>`;
 
@@ -316,13 +512,13 @@ document.querySelectorAll(".filter-btn[data-filter]").forEach(button => {
     document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
     this.classList.add("active");
     activeFilter = this.dataset.filter;
-    renderMarkers();
+    updateMapData();
   });
 });
 
 document.getElementById("searchBox").addEventListener("input", function() {
   searchTerm = this.value.toLowerCase().trim();
-  renderMarkers();
+  updateMapData();
 });
 
 document.getElementById("nearMeBtn").addEventListener("click", function() {
@@ -353,7 +549,14 @@ document.getElementById("nearMeBtn").addEventListener("click", function() {
   });
 });
 
-map.on("load", loadVenues);
+map.on("load", function() {
+  addVenueLayers();
+  loadVenues();
+  setTimeout(() => map.resize(), 300);
+});
+
+window.addEventListener("resize", () => map.resize());
+window.addEventListener("load", () => setTimeout(() => map.resize(), 500));
 </script>
 
 </body>
