@@ -1,190 +1,161 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waggly Tails — The Map</title>
+<title>Waggly Tails Map</title>
+
 <script src="https://unpkg.com/maplibre-gl@4.1.3/dist/maplibre-gl.js"></script>
+
 <link href="https://unpkg.com/maplibre-gl@4.1.3/dist/maplibre-gl.css" rel="stylesheet"/>
+
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
-#map { position:absolute; top:44px; left:0; right:0; bottom:0; }
-#header {
-  position:fixed; top:0; left:0; right:0; z-index:100;
-  background:#1a3a5c; padding:10px 18px;
-  display:flex; align-items:center; gap:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+
+html,body{
+margin:0;
+padding:0;
+height:100%;
+width:100%;
+font-family:Arial,sans-serif;
 }
-.h-paw { font-size:22px; }
-.h-title { color:#fff; font-size:17px; font-family:Georgia,serif; }
-.h-sub { color:#9ab8d4; font-size:11px; margin-left:auto; }
-.h-pill { background:#e8a020; color:#fff; font-size:11px; font-weight:bold; border-radius:12px; padding:3px 10px; }
-.wt-popup { font-family:Arial,sans-serif; width:250px; }
-.wt-popup .p-name { font-size:15px; font-weight:bold; color:#1a3a5c; margin-bottom:2px; }
-.wt-popup .p-type { font-size:11px; color:#999; margin-bottom:10px; }
-.wt-popup .p-deal { background:#e8f4f0; border:1px solid #7ecfb5; border-radius:8px; padding:8px 10px; margin-bottom:8px; }
-.wt-popup .p-deal b { display:block; color:#1a6b50; font-size:13px; margin-bottom:2px; }
-.wt-popup .p-deal span { color:#2a8060; font-size:12px; }
-.wt-popup .p-how { background:#f5f0e8; border-radius:8px; padding:7px 9px; font-size:11px; color:#555; line-height:1.6; margin-bottom:8px; }
-.wt-popup .p-poster { font-size:11px; background:#fff4e0; border:1px solid #e8c96c; border-radius:6px; padding:5px 8px; color:#8a5c00; }
-.wt-popup .p-listed { font-size:11px; color:#aaa; }
-#legend { position:fixed; bottom:20px; left:12px; z-index:100; background:rgba(255,255,255,0.96); border:1px solid #d0c8b0; border-radius:10px; padding:10px 14px; font-size:12px; color:#444; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
-#legend b { display:block; margin-bottom:7px; color:#1a3a5c; font-size:13px; }
-.lr { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-.lr:last-child { margin-bottom:0; }
-.ld { width:13px; height:13px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
-.pin-el { width:38px; height:38px; border-radius:50%; border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; font-size:19px; cursor:pointer; transition:transform 0.15s; position:relative; }
-.pin-el:hover { transform:scale(1.18); }
-.pin-poster-el { background:#1a3a5c; }
-.pin-listing-el { background:#3d8bbd; }
-.pin-star { position:absolute; top:-5px; right:-5px; width:15px; height:15px; background:#e8a020; border-radius:50%; border:2px solid #fff; font-size:9px; line-height:13px; text-align:center; color:#fff; font-weight:bold; }
-.maplibregl-popup-content { border-radius:12px !important; box-shadow:0 4px 16px rgba(0,0,0,0.18) !important; border:1px solid #d0c8b0 !important; padding:16px !important; }
-.maplibregl-popup-close-button { font-size:18px !important; color:#999 !important; padding:4px 8px !important; }
-.maplibregl-ctrl-bottom-right { bottom:30px !important; right:10px !important; }
+
+#map{
+position:absolute;
+top:0;
+left:0;
+right:0;
+bottom:0;
+}
+
+#header{
+position:absolute;
+top:10px;
+left:10px;
+z-index:10;
+background:white;
+padding:10px 15px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.15);
+font-weight:bold;
+}
+
+.pin{
+width:38px;
+height:38px;
+border-radius:50%;
+background:#1a3a5c;
+border:3px solid white;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+cursor:pointer;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+
 </style>
+
 </head>
+
 <body>
 
 <div id="header">
-  <span class="h-paw">🐾</span>
-  <span class="h-title">Waggly Tails — The Map</span>
-  <span class="h-sub">Click a paw print to discover a venue</span>
-  <span class="h-pill" id="vc">Loading...</span>
+🐾 Waggly Tails Map
 </div>
 
 <div id="map"></div>
 
-<div id="legend">
-  <b>Map Key</b>
-  <div class="lr"><div class="ld" style="background:#1a3a5c;"></div>Pirate Poster venue</div>
-  <div class="lr"><div class="ld" style="background:#3d8bbd;"></div>Listed venue</div>
-</div>
-
 <script>
 
-// ================================================================
-// WAGGLY TAILS VENUE LIST
-// All coordinates verified against real Brighton street locations
-// To add a real venue:
-// 1. Go to maps.google.com and find the venue
-// 2. Right-click on it — click the coordinates at the top
-// 3. First number = lat, second = lng
-// 4. Copy a block below, paste before the final ];
-// 5. Fill in details, commit on GitHub
-// ================================================================
+const venues = [
 
-var venues = [
+{
+name:"Brighton Palace Pier",
+lat:50.8193,
+lng:-0.1367
+},
 
-  {
-    name: "Demo Venue — North Laine",
-    type: "Cafe - Gardner Street, Brighton",
-    lat: 50.8267, lng: -0.1378,
-    poster: true,
-    deal: "10% off your order",
-    note: "Tag us and show your post at the till to unlock"
-  },
-  {
-    name: "Demo Venue — The Lanes",
-    type: "Pub - Meeting House Lane, Brighton",
-    lat: 50.8208, lng: -0.1413,
-    poster: true,
-    deal: "Free dog biscuits",
-    note: "With any drink — just show your post"
-  },
-  {
-    name: "Demo Venue — Western Road",
-    type: "Shop - Western Road, Hove",
-    lat: 50.8272, lng: -0.1601,
-    poster: false,
-    deal: "10% off accessories",
-    note: "Show your tagged post at checkout"
-  },
-  {
-    name: "Demo Venue — Church Road Hove",
-    type: "Cafe - Church Road, Hove",
-    lat: 50.8305, lng: -0.1734,
-    poster: true,
-    deal: "Free puppuccino for your dog",
-    note: "On the house — just show us your post"
-  },
-  {
-    name: "Demo Venue — Seven Dials",
-    type: "Cafe - Seven Dials, Brighton",
-    lat: 50.8320, lng: -0.1494,
-    poster: false,
-    deal: "Free cake slice",
-    note: "With a hot drink and your post"
-  },
-  {
-    name: "Demo Venue — Kemptown",
-    type: "Bar - St James's Street, Brighton",
-    lat: 50.8224, lng: -0.1143,
-    poster: true,
-    deal: "Free treat for your dog",
-    note: "With any hot drink"
-  },
-  {
-    name: "Demo Venue — Brighton Station",
-    type: "Cafe - Queens Road, Brighton",
-    lat: 50.8296, lng: -0.1414,
-    poster: false,
-    deal: "15% off on your first visit",
-    note: "Show your check-in post"
-  },
-  {
-    name: "Demo Venue — London Road",
-    type: "Pub - London Road, Brighton",
-    lat: 50.8370, lng: -0.1367,
-    poster: true,
-    deal: "Happy hour 4 to 6pm",
-    note: "Extra prize draw entry included"
-  }
+{
+name:"Royal Pavilion",
+lat:50.8225,
+lng:-0.1370
+},
+
+{
+name:"Brighton Station",
+lat:50.8289,
+lng:-0.1419
+},
+
+{
+name:"Seven Dials",
+lat:50.8319,
+lng:-0.1496
+},
+
+{
+name:"Hove Lawns",
+lat:50.8258,
+lng:-0.1686
+}
 
 ];
 
-var map = new maplibregl.Map({
-  container: 'map',
-  style: 'https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776',
-  center: [-0.1500, 50.8290],
-  zoom: 13,
-  minZoom: 5,
-  maxZoom: 19,
-  attributionControl: true
+const map = new maplibregl.Map({
+container:'map',
+style:'https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776',
+
+center:[-2.5,54.5],
+zoom:5.5,
+minZoom:5,
+maxZoom:18
+
 });
 
-map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+map.addControl(
+new maplibregl.NavigationControl(),
+'top-right'
+);
 
-map.on('load', function() {
-  venues.forEach(function(v) {
-    var el = document.createElement('div');
-    el.className = 'pin-el ' + (v.poster ? 'pin-poster-el' : 'pin-listing-el');
-    el.innerHTML = '🐾' + (v.poster ? '<div class="pin-star">&#9733;</div>' : '');
+map.on('load',()=>{
 
-    var posterHTML = v.poster
-      ? '<div class="p-poster">🏴 Pirate Poster venue — walk-in customers pulled straight into the adventure</div>'
-      : '<div class="p-listed">📍 Listed venue — discoverable on the Waggly Tails map</div>';
+setTimeout(()=>{
 
-    var popupHTML = '<div class="wt-popup">'
-      + '<div class="p-name">' + v.name + '</div>'
-      + '<div class="p-type">' + v.type + '</div>'
-      + '<div class="p-deal"><b>🎁 ' + v.deal + '</b><span>' + v.note + '</span></div>'
-      + '<div class="p-how">📸 Photo at venue → 📱 Post tagging venue & @wagglytails_club → 💰 Show post to unlock your deal</div>'
-      + posterHTML
-      + '</div>';
+map.flyTo({
+center:[-0.1375,50.8225],
+zoom:12,
+speed:0.7,
+curve:1.2
+});
 
-    var popup = new maplibregl.Popup({ offset: 22, maxWidth: '280px' })
-      .setHTML(popupHTML);
+},1500);
 
-    new maplibregl.Marker({ element: el })
-      .setLngLat([v.lng, v.lat])
-      .setPopup(popup)
-      .addTo(map);
-  });
+venues.forEach(v=>{
 
-  document.getElementById('vc').textContent = venues.length + ' venues live';
+const el=document.createElement('div');
+el.className='pin';
+el.innerHTML='🐾';
+
+const popup=new maplibregl.Popup({
+offset:20
+})
+.setHTML(
+'<b>'+v.name+'</b>'
+);
+
+new maplibregl.Marker({
+element:el
+})
+.setLngLat([v.lng,v.lat])
+.setPopup(popup)
+.addTo(map);
+
+});
+
 });
 
 </script>
+
 </body>
 </html>
