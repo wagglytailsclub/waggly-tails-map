@@ -1,161 +1,1026 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waggly Tails Map</title>
-
+<title>Waggly Tails — The Map</title>
 <script src="https://unpkg.com/maplibre-gl@4.1.3/dist/maplibre-gl.js"></script>
-
 <link href="https://unpkg.com/maplibre-gl@4.1.3/dist/maplibre-gl.css" rel="stylesheet"/>
-
 <style>
-
-html,body{
-margin:0;
-padding:0;
-height:100%;
-width:100%;
-font-family:Arial,sans-serif;
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
+#map { position:absolute; top:44px; left:0; right:0; bottom:0; }
+#header {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:#1a3a5c; padding:10px 18px;
+  display:flex; align-items:center; gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
-
-#map{
-position:absolute;
-top:0;
-left:0;
-right:0;
-bottom:0;
+.h-paw { font-size:22px; }
+.h-title { color:#fff; font-size:17px; font-family:Georgia,serif; }
+.h-sub { color:#9ab8d4; font-size:11px; margin-left:auto; }
+.h-pill { background:#e8a020; color:#fff; font-size:11px; font-weight:bold; border-radius:12px; padding:3px 10px; }
+.wt-popup { font-family:Arial,sans-serif; width:250px; }
+.wt-popup .p-name { font-size:15px; font-weight:bold; color:#1a3a5c; margin-bottom:2px; }
+.wt-popup .p-type { font-size:11px; color:#999; margin-bottom:10px; }
+.wt-popup .p-deal { background:#e8f4f0; border:1px solid #7ecfb5; border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+.wt-popup .p-deal b { display:block; color:#1a6b50; font-size:13px; margin-bottom:2px; }
+.wt-popup .p-deal span { color:#2a8060; font-size:12px; }
+.wt-popup .p-how { background:#f5f0e8; border-radius:8px; padding:7px 9px; font-size:11px; color:#555; line-height:1.6; margin-bottom:8px; }
+.wt-popup .p-poster { font-size:11px; background:#fff4e0; border:1px solid #e8c96c; border-radius:6px; padding:5px 8px; color:#8a5c00; }
+.wt-popup .p-listed { font-size:11px; color:#777; background:#f2f6fa; border:1px solid #d9e7f2; border-radius:6px; padding:5px 8px; }
+#legend { position:fixed; bottom:20px; left:12px; z-index:100; background:rgba(255,255,255,0.96); border:1px solid #d0c8b0; border-radius:10px; padding:10px 14px; font-size:12px; color:#444; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+#legend b { display:block; margin-bottom:7px; color:#1a3a5c; font-size:13px; }
+.lr { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.lr:last-child { margin-bottom:0; }
+.ld { width:13px; height:13px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+.pin-el { width:34px; height:34px; border-radius:50%; border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; font-size:17px; cursor:pointer; transition:transform 0.15s; position:relative; }
+.pin-el:hover { transform:scale(1.18); z-index:999; }
+.pin-poster-el { background:#1a3a5c; }
+.pin-listing-el { background:#3d8bbd; }
+.pin-star { position:absolute; top:-5px; right:-5px; width:15px; height:15px; background:#e8a020; border-radius:50%; border:2px solid #fff; font-size:9px; line-height:13px; text-align:center; color:#fff; font-weight:bold; }
+.maplibregl-popup-content { border-radius:12px !important; box-shadow:0 4px 16px rgba(0,0,0,0.18) !important; border:1px solid #d0c8b0 !important; padding:16px !important; }
+.maplibregl-popup-close-button { font-size:18px !important; color:#999 !important; padding:4px 8px !important; }
+.maplibregl-ctrl-bottom-right { bottom:30px !important; right:10px !important; }
+@media (max-width:700px) {
+  .h-sub { display:none; }
+  .h-title { font-size:15px; }
+  #legend { bottom:12px; left:8px; font-size:11px; }
 }
-
-#header{
-position:absolute;
-top:10px;
-left:10px;
-z-index:10;
-background:white;
-padding:10px 15px;
-border-radius:10px;
-box-shadow:0 2px 10px rgba(0,0,0,0.15);
-font-weight:bold;
-}
-
-.pin{
-width:38px;
-height:38px;
-border-radius:50%;
-background:#1a3a5c;
-border:3px solid white;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:20px;
-cursor:pointer;
-box-shadow:0 2px 8px rgba(0,0,0,0.3);
-}
-
 </style>
-
 </head>
-
 <body>
 
 <div id="header">
-🐾 Waggly Tails Map
+  <span class="h-paw">🐾</span>
+  <span class="h-title">Waggly Tails — The Map</span>
+  <span class="h-sub">Click a paw print to discover a venue</span>
+  <span class="h-pill" id="vc">Loading...</span>
 </div>
 
 <div id="map"></div>
 
+<div id="legend">
+  <b>Map Key</b>
+  <div class="lr"><div class="ld" style="background:#1a3a5c;"></div>Poster venue</div>
+  <div class="lr"><div class="ld" style="background:#3d8bbd;"></div>Listed venue</div>
+</div>
+
 <script>
+// Waggly Tails Brighton & Hove starter map.
+// Important: this is a working 100-venue starter dataset. Confirm each venue's pet policy before selling/listing publicly.
 
-const venues = [
-
-{
-name:"Brighton Palace Pier",
-lat:50.8193,
-lng:-0.1367
-},
-
-{
-name:"Royal Pavilion",
-lat:50.8225,
-lng:-0.1370
-},
-
-{
-name:"Brighton Station",
-lat:50.8289,
-lng:-0.1419
-},
-
-{
-name:"Seven Dials",
-lat:50.8319,
-lng:-0.1496
-},
-
-{
-name:"Hove Lawns",
-lat:50.8258,
-lng:-0.1686
-}
-
+var venues = [
+  {
+    "name": "The Better Half",
+    "type": "Pub - Hove",
+    "lat": 50.8273,
+    "lng": -0.1764,
+    "poster": true,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Ginger Dog",
+    "type": "Restaurant - Kemptown",
+    "lat": 50.8198,
+    "lng": -0.1204,
+    "poster": true,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Ginger Pig",
+    "type": "Restaurant - Hove",
+    "lat": 50.8282,
+    "lng": -0.1841,
+    "poster": true,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Earth & Stars",
+    "type": "Pub - Windsor Street",
+    "lat": 50.8245,
+    "lng": -0.1432,
+    "poster": true,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Camelford Arms",
+    "type": "Pub - Kemptown",
+    "lat": 50.821,
+    "lng": -0.126,
+    "poster": true,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Walrus",
+    "type": "Pub - Ship Street",
+    "lat": 50.8213,
+    "lng": -0.1415,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Mesmerist",
+    "type": "Pub - Prince Albert Street",
+    "lat": 50.8212,
+    "lng": -0.1394,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Dorset Bar & Kitchen",
+    "type": "Pub - North Laine",
+    "lat": 50.8255,
+    "lng": -0.1374,
+    "poster": true,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Basketmakers Arms",
+    "type": "Pub - Gloucester Road",
+    "lat": 50.8272,
+    "lng": -0.1363,
+    "poster": true,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Pond",
+    "type": "Pub - Gloucester Road",
+    "lat": 50.8276,
+    "lng": -0.1379,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Eagle",
+    "type": "Pub - Gloucester Road",
+    "lat": 50.8278,
+    "lng": -0.1351,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Great Eastern",
+    "type": "Pub - Trafalgar Street",
+    "lat": 50.8281,
+    "lng": -0.1364,
+    "poster": true,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Prince George",
+    "type": "Pub - Trafalgar Street",
+    "lat": 50.8277,
+    "lng": -0.1396,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Lord Nelson Inn",
+    "type": "Pub - Trafalgar Street",
+    "lat": 50.8284,
+    "lng": -0.1406,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Caxton Arms",
+    "type": "Pub - North Gardens",
+    "lat": 50.8267,
+    "lng": -0.1458,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Crescent",
+    "type": "Pub - Clifton Hill",
+    "lat": 50.8307,
+    "lng": -0.1502,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Cleveland Arms",
+    "type": "Pub - Blakers Park",
+    "lat": 50.8388,
+    "lng": -0.1356,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Preston Park Tavern",
+    "type": "Pub - Preston Drove",
+    "lat": 50.8406,
+    "lng": -0.1399,
+    "poster": true,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Park View",
+    "type": "Pub - Preston Drove",
+    "lat": 50.8413,
+    "lng": -0.1441,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Signalman",
+    "type": "Pub - Ditchling Rise",
+    "lat": 50.8356,
+    "lng": -0.1336,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Open House",
+    "type": "Pub - Springfield Road",
+    "lat": 50.8342,
+    "lng": -0.1347,
+    "poster": true,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Roundhill",
+    "type": "Pub - Ditchling Road",
+    "lat": 50.8332,
+    "lng": -0.1326,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Geese",
+    "type": "Pub - Southover Street",
+    "lat": 50.8266,
+    "lng": -0.1283,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Hartington",
+    "type": "Pub - Whippingham Road",
+    "lat": 50.828,
+    "lng": -0.1179,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Independent",
+    "type": "Pub - Hanover",
+    "lat": 50.8275,
+    "lng": -0.1264,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Constant Service",
+    "type": "Pub - Hanover",
+    "lat": 50.8252,
+    "lng": -0.1274,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Hanover",
+    "type": "Pub - Queen's Park Road",
+    "lat": 50.8236,
+    "lng": -0.1245,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Village",
+    "type": "Pub - Islingword Road",
+    "lat": 50.826,
+    "lng": -0.1232,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Sidewinder",
+    "type": "Pub - St James's Street",
+    "lat": 50.8215,
+    "lng": -0.1276,
+    "poster": true,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Black Dove",
+    "type": "Pub - St James's Street",
+    "lat": 50.8214,
+    "lng": -0.1251,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Mucky Duck",
+    "type": "Pub - Manchester Street",
+    "lat": 50.8213,
+    "lng": -0.1305,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Marine Tavern",
+    "type": "Pub - Broad Street",
+    "lat": 50.8205,
+    "lng": -0.1331,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Plotting Parlour",
+    "type": "Bar - Steine Street",
+    "lat": 50.8209,
+    "lng": -0.1352,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Patterns",
+    "type": "Bar - Marine Parade",
+    "lat": 50.8199,
+    "lng": -0.1342,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Tempest Inn",
+    "type": "Seafront Bar - King's Road",
+    "lat": 50.8195,
+    "lng": -0.1434,
+    "poster": true,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Fortune of War",
+    "type": "Seafront Bar - King's Road",
+    "lat": 50.8194,
+    "lng": -0.1417,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The West Hill Tavern",
+    "type": "Pub - Compton Avenue",
+    "lat": 50.831,
+    "lng": -0.1433,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Shakespeare's Head",
+    "type": "Pub - Chatham Place",
+    "lat": 50.8294,
+    "lng": -0.1439,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Robin Hood",
+    "type": "Pub - Norfolk Place",
+    "lat": 50.8255,
+    "lng": -0.1531,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Southern Belle",
+    "type": "Pub - Waterloo Street",
+    "lat": 50.825,
+    "lng": -0.1586,
+    "poster": true,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Brunswick",
+    "type": "Pub - Holland Road",
+    "lat": 50.8249,
+    "lng": -0.1607,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Farm Tavern",
+    "type": "Pub - Farm Road",
+    "lat": 50.8254,
+    "lng": -0.1618,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Wick Inn",
+    "type": "Pub - Hove",
+    "lat": 50.8272,
+    "lng": -0.1646,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Freemasons",
+    "type": "Pub - Hove",
+    "lat": 50.8276,
+    "lng": -0.1659,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Paris House",
+    "type": "Pub - Western Road",
+    "lat": 50.826,
+    "lng": -0.1637,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Ancient Mariner",
+    "type": "Pub - Rutland Road",
+    "lat": 50.8318,
+    "lng": -0.1805,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Stoneham",
+    "type": "Pub - Portland Road",
+    "lat": 50.8321,
+    "lng": -0.1893,
+    "poster": true,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The George Payne",
+    "type": "Pub - Payne Avenue",
+    "lat": 50.8354,
+    "lng": -0.1904,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Poets Ale and Smokehouse",
+    "type": "Pub - Montgomery Street",
+    "lat": 50.8298,
+    "lng": -0.1736,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Exchange",
+    "type": "Pub - Goldstone Street",
+    "lat": 50.8306,
+    "lng": -0.1738,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Sussex Cricketer",
+    "type": "Pub - Eaton Road",
+    "lat": 50.8302,
+    "lng": -0.1704,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Hove Place",
+    "type": "Pub - First Avenue",
+    "lat": 50.828,
+    "lng": -0.1689,
+    "poster": true,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Connaught",
+    "type": "Pub - Hove",
+    "lat": 50.8272,
+    "lng": -0.1754,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Blind Busker",
+    "type": "Pub - Hove",
+    "lat": 50.8292,
+    "lng": -0.1748,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Modelo Lounge",
+    "type": "Cafe Bar - Church Road",
+    "lat": 50.829,
+    "lng": -0.1758,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Urchin",
+    "type": "Pub - Belfast Street",
+    "lat": 50.8296,
+    "lng": -0.1842,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Railway Inn Portslade",
+    "type": "Pub - Station Road",
+    "lat": 50.8353,
+    "lng": -0.2056,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Foghorn",
+    "type": "Pub - Boundary Road",
+    "lat": 50.8348,
+    "lng": -0.2063,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Battle of Trafalgar",
+    "type": "Pub - Guildford Road",
+    "lat": 50.8295,
+    "lng": -0.1409,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Prince Albert",
+    "type": "Pub - Trafalgar Street",
+    "lat": 50.8286,
+    "lng": -0.14,
+    "poster": true,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Black Mocha",
+    "type": "Cafe - Gloucester Road",
+    "lat": 50.8268,
+    "lng": -0.1373,
+    "poster": true,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "17GRAMS",
+    "type": "Cafe - Meeting House Lane",
+    "lat": 50.8216,
+    "lng": -0.141,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Redroaster",
+    "type": "Cafe - St James's Street",
+    "lat": 50.821,
+    "lng": -0.1285,
+    "poster": true,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Lucky Beach Cafe",
+    "type": "Cafe - Seafront",
+    "lat": 50.8192,
+    "lng": -0.1399,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Flour Pot Bakery Sydney Street",
+    "type": "Cafe - North Laine",
+    "lat": 50.8265,
+    "lng": -0.138,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Flour Pot Bakery Fiveways",
+    "type": "Cafe - Fiveways",
+    "lat": 50.8427,
+    "lng": -0.136,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Flour Pot Bakery First Avenue",
+    "type": "Cafe - Hove",
+    "lat": 50.8276,
+    "lng": -0.1686,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Cafe Coho",
+    "type": "Cafe - Ship Street",
+    "lat": 50.822,
+    "lng": -0.1415,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Moksha Caffe",
+    "type": "Cafe - York Place",
+    "lat": 50.8273,
+    "lng": -0.1345,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Pelicano Coffee Sydney Street",
+    "type": "Cafe - North Laine",
+    "lat": 50.8264,
+    "lng": -0.1375,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Pelicano Coffee Sydney Street North",
+    "type": "Cafe - North Laine",
+    "lat": 50.8275,
+    "lng": -0.1373,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Bond St Coffee",
+    "type": "Cafe - Bond Street",
+    "lat": 50.8253,
+    "lng": -0.1393,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Trading Post Coffee Roasters",
+    "type": "Cafe - Ship Street",
+    "lat": 50.8218,
+    "lng": -0.1405,
+    "poster": true,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Cafe Rust Kemptown",
+    "type": "Cafe - Kemptown",
+    "lat": 50.8209,
+    "lng": -0.1242,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Cafe Rust Hove",
+    "type": "Cafe - Hove",
+    "lat": 50.8285,
+    "lng": -0.1745,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Billie's",
+    "type": "Cafe - Upper North Street",
+    "lat": 50.8247,
+    "lng": -0.1477,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Belchers Cafe",
+    "type": "Cafe - Montpelier Road",
+    "lat": 50.8286,
+    "lng": -0.1491,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Dyke Road Park Cafe",
+    "type": "Cafe - Dyke Road Park",
+    "lat": 50.8389,
+    "lng": -0.1537,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Richard's Cafe",
+    "type": "Cafe - Church Road",
+    "lat": 50.8287,
+    "lng": -0.1784,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "One Bread",
+    "type": "Bakery Cafe - Hove",
+    "lat": 50.8312,
+    "lng": -0.1802,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Laughing Dog Brighton",
+    "type": "Cafe - Brighton Marina",
+    "lat": 50.8124,
+    "lng": -0.1033,
+    "poster": true,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Shoreline Coffee & Kitchen",
+    "type": "Cafe - Hove Lagoon",
+    "lat": 50.8256,
+    "lng": -0.2081,
+    "poster": true,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Fika Hove",
+    "type": "Cafe - Hove",
+    "lat": 50.83,
+    "lng": -0.1822,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Garden Cafe",
+    "type": "Cafe - North Road",
+    "lat": 50.8245,
+    "lng": -0.1398,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Love Gelato",
+    "type": "Cafe - Brighton",
+    "lat": 50.8234,
+    "lng": -0.1401,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Botanist Coffee Co.",
+    "type": "Cafe - Hove",
+    "lat": 50.8291,
+    "lng": -0.1814,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Earl's Sandwiches",
+    "type": "Cafe - Hove",
+    "lat": 50.8301,
+    "lng": -0.1717,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Post House Cafe",
+    "type": "Cafe - Ship Street Gardens",
+    "lat": 50.8222,
+    "lng": -0.1411,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Hilltop Cafe",
+    "type": "Cafe - Dyke Road",
+    "lat": 50.842,
+    "lng": -0.1538,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Salt Shed",
+    "type": "Restaurant - Church Street",
+    "lat": 50.8242,
+    "lng": -0.1386,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Coal Shed",
+    "type": "Restaurant - Boyce's Street",
+    "lat": 50.8214,
+    "lng": -0.1426,
+    "poster": false,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Burnt Orange",
+    "type": "Restaurant - Middle Street",
+    "lat": 50.8215,
+    "lng": -0.1421,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Chilli Pickle",
+    "type": "Restaurant - Jubilee Street",
+    "lat": 50.8248,
+    "lng": -0.1379,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Mange Tout",
+    "type": "Bistro - Trafalgar Street",
+    "lat": 50.8283,
+    "lng": -0.1393,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The New Club",
+    "type": "Restaurant - King's Road",
+    "lat": 50.8217,
+    "lng": -0.1541,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Artist Residence Brighton",
+    "type": "Hotel Restaurant - Regency Square",
+    "lat": 50.8224,
+    "lng": -0.1509,
+    "poster": true,
+    "deal": "10% off your order",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Grand Brighton",
+    "type": "Hotel - King's Road",
+    "lat": 50.8214,
+    "lng": -0.1478,
+    "poster": false,
+    "deal": "Free dog treat at the counter",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Hotel du Vin Brighton",
+    "type": "Hotel - Ship Street",
+    "lat": 50.8211,
+    "lng": -0.1424,
+    "poster": false,
+    "deal": "Free puppuccino with purchase",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "The Old Ship Hotel",
+    "type": "Hotel - Seafront",
+    "lat": 50.8201,
+    "lng": -0.1415,
+    "poster": false,
+    "deal": "Prize draw bonus entry",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  },
+  {
+    "name": "Malmaison Brighton",
+    "type": "Hotel - Marina",
+    "lat": 50.812,
+    "lng": -0.1035,
+    "poster": false,
+    "deal": "15% off first visit",
+    "note": "Post a photo, tag this venue and @wagglytails_club, then show your post to unlock."
+  }
 ];
 
-const map = new maplibregl.Map({
-container:'map',
-style:'https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776',
+function esc(str) {
+  return String(str || '').replace(/[&<>"']/g, function(m) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m];
+  });
+}
 
-center:[-2.5,54.5],
-zoom:5.5,
-minZoom:5,
-maxZoom:18
-
+var map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776',
+  center: [-0.1500, 50.8290],
+  zoom: 12.6,
+  minZoom: 5,
+  maxZoom: 19,
+  attributionControl: true
 });
 
-map.addControl(
-new maplibregl.NavigationControl(),
-'top-right'
-);
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-map.on('load',()=>{
+map.on('load', function() {
+  venues.forEach(function(v) {
+    var el = document.createElement('div');
+    el.className = 'pin-el ' + (v.poster ? 'pin-poster-el' : 'pin-listing-el');
+    el.innerHTML = '🐾' + (v.poster ? '<div class="pin-star">&#9733;</div>' : '');
 
-setTimeout(()=>{
+    var posterHTML = v.poster
+      ? '<div class="p-poster">⭐ Poster venue — premium in-venue reward stop</div>'
+      : '<div class="p-listed">📍 Listed venue — discoverable on the Waggly Tails map</div>';
 
-map.flyTo({
-center:[-0.1375,50.8225],
-zoom:12,
-speed:0.7,
-curve:1.2
+    var popupHTML = '<div class="wt-popup">'
+      + '<div class="p-name">' + esc(v.name) + '</div>'
+      + '<div class="p-type">' + esc(v.type) + '</div>'
+      + '<div class="p-deal"><b>🎁 ' + esc(v.deal) + '</b><span>' + esc(v.note) + '</span></div>'
+      + '<div class="p-how">📸 Visit → 📱 Post tagging venue & @wagglytails_club → 🎁 Show post to unlock reward</div>'
+      + posterHTML
+      + '</div>';
+
+    new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([v.lng, v.lat])
+      .setPopup(new maplibregl.Popup({ offset: 22, maxWidth: '280px' }).setHTML(popupHTML))
+      .addTo(map);
+  });
+
+  document.getElementById('vc').textContent = venues.length + ' venues live';
+
+  var bounds = new maplibregl.LngLatBounds();
+  venues.forEach(function(v) { bounds.extend([v.lng, v.lat]); });
+  map.fitBounds(bounds, { padding: 70, maxZoom: 13.2 });
 });
-
-},1500);
-
-venues.forEach(v=>{
-
-const el=document.createElement('div');
-el.className='pin';
-el.innerHTML='🐾';
-
-const popup=new maplibregl.Popup({
-offset:20
-})
-.setHTML(
-'<b>'+v.name+'</b>'
-);
-
-new maplibregl.Marker({
-element:el
-})
-.setLngLat([v.lng,v.lat])
-.setPopup(popup)
-.addTo(map);
-
-});
-
-});
-
 </script>
-
 </body>
 </html>
