@@ -44,15 +44,26 @@ button.filter-btn {
 
 button.filter-btn.active { background:#e8a020; color:#fff; }
 
-.marker-dot {
-  width:38px; height:38px; border-radius:50%;
-  border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,0.35);
-  display:flex; align-items:center; justify-content:center;
-  font-size:19px; cursor:pointer;
+.paw-marker{
+  font-size:34px;
+  line-height:1;
+  cursor:pointer;
+  transition:all .2s ease;
 }
 
-.marker-featured { background:#1a3a5c; }
-.marker-standard { background:#3d8bbd; }
+.paw-marker:hover{
+  transform:scale(1.2);
+}
+
+.paw-standard{
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));
+}
+
+.paw-featured{
+  filter:
+    drop-shadow(0 0 6px gold)
+    drop-shadow(0 2px 3px rgba(0,0,0,.3));
+}
 
 .wt-popup { font-family:Arial,sans-serif; width:250px; }
 .p-name { font-size:16px; font-weight:bold; color:#1a3a5c; margin-bottom:3px; }
@@ -266,8 +277,12 @@ function renderMarkers() {
 
   visibleVenues.forEach(v => {
     const el = document.createElement("div");
-    el.className = "marker-dot " + (v.featured ? "marker-featured" : "marker-standard");
-    el.innerHTML = "🐾";
+
+el.className =
+  "paw-marker " +
+  (v.featured ? "paw-featured" : "paw-standard");
+
+el.innerHTML = "🐾";
 
     const popup = new maplibregl.Popup({ offset: 25, maxWidth: "280px" })
       .setHTML(createPopupHTML(v));
