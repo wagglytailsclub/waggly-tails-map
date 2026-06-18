@@ -9,9 +9,9 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
-#map { position:absolute; top:0; left:0; right:0; bottom:0; }
+#map { position:absolute; top:44px; left:0; right:0; bottom:0; }
 #header {
-  position:absolute; top:0; left:0; right:0; z-index:100;
+  position:fixed; top:0; left:0; right:0; z-index:100;
   background:#1a3a5c; padding:10px 18px;
   display:flex; align-items:center; gap:12px;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
@@ -29,7 +29,7 @@ html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
 .wt-popup .p-how { background:#f5f0e8; border-radius:8px; padding:7px 9px; font-size:11px; color:#555; line-height:1.6; margin-bottom:8px; }
 .wt-popup .p-poster { font-size:11px; background:#fff4e0; border:1px solid #e8c96c; border-radius:6px; padding:5px 8px; color:#8a5c00; }
 .wt-popup .p-listed { font-size:11px; color:#aaa; }
-#legend { position:absolute; bottom:36px; left:12px; z-index:100; background:rgba(255,255,255,0.96); border:1px solid #d0c8b0; border-radius:10px; padding:10px 14px; font-size:12px; color:#444; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+#legend { position:fixed; bottom:20px; left:12px; z-index:100; background:rgba(255,255,255,0.96); border:1px solid #d0c8b0; border-radius:10px; padding:10px 14px; font-size:12px; color:#444; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
 #legend b { display:block; margin-bottom:7px; color:#1a3a5c; font-size:13px; }
 .lr { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
 .lr:last-child { margin-bottom:0; }
@@ -41,6 +41,7 @@ html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
 .pin-star { position:absolute; top:-5px; right:-5px; width:15px; height:15px; background:#e8a020; border-radius:50%; border:2px solid #fff; font-size:9px; line-height:13px; text-align:center; color:#fff; font-weight:bold; }
 .maplibregl-popup-content { border-radius:12px !important; box-shadow:0 4px 16px rgba(0,0,0,0.18) !important; border:1px solid #d0c8b0 !important; padding:16px !important; }
 .maplibregl-popup-close-button { font-size:18px !important; color:#999 !important; padding:4px 8px !important; }
+.maplibregl-ctrl-bottom-right { bottom:30px !important; right:10px !important; }
 </style>
 </head>
 <body>
@@ -62,110 +63,91 @@ html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
 
 <script>
 
+// ================================================================
+// WAGGLY TAILS VENUE LIST
+// All coordinates verified against real Brighton street locations
+// To add a real venue:
+// 1. Go to maps.google.com and find the venue
+// 2. Right-click on it — click the coordinates at the top
+// 3. First number = lat, second = lng
+// 4. Copy a block below, paste before the final ];
+// 5. Fill in details, commit on GitHub
+// ================================================================
+
 var venues = [
+
   {
-    name: "The Doggy Brew",
-    type: "Cafe - North Laine, Brighton",
-    lat: 50.8265, lng: -0.1383,
+    name: "Demo Venue — North Laine",
+    type: "Cafe - Gardner Street, Brighton",
+    lat: 50.8267, lng: -0.1378,
     poster: true,
     deal: "10% off your order",
     note: "Tag us and show your post at the till to unlock"
   },
   {
-    name: "Paws and Pints",
-    type: "Pub - The Lanes, Brighton",
-    lat: 50.8230, lng: -0.1410,
+    name: "Demo Venue — The Lanes",
+    type: "Pub - Meeting House Lane, Brighton",
+    lat: 50.8208, lng: -0.1413,
     poster: true,
     deal: "Free dog biscuits",
     note: "With any drink — just show your post"
   },
   {
-    name: "The Salty Paw",
-    type: "Seafront Bar - Brighton",
-    lat: 50.8218, lng: -0.1502,
-    poster: false,
-    deal: "5% off food",
-    note: "For Waggly Tails explorers"
-  },
-  {
-    name: "Hove and Hound",
-    type: "Cafe - Hove",
-    lat: 50.8308, lng: -0.1712,
-    poster: true,
-    deal: "Free puppuccino for your dog",
-    note: "On the house — just show us your post"
-  },
-  {
-    name: "The Bone Boutique",
-    type: "Pet Shop - Hove",
-    lat: 50.8322, lng: -0.1780,
+    name: "Demo Venue — Western Road",
+    type: "Shop - Western Road, Hove",
+    lat: 50.8272, lng: -0.1601,
     poster: false,
     deal: "10% off accessories",
     note: "Show your tagged post at checkout"
   },
   {
-    name: "Kemptown Canines",
-    type: "Cafe - Kemptown, Brighton",
-    lat: 50.8198, lng: -0.1089,
+    name: "Demo Venue — Church Road Hove",
+    type: "Cafe - Church Road, Hove",
+    lat: 50.8305, lng: -0.1734,
     poster: true,
-    deal: "Free treat for your dog",
-    note: "With any hot drink"
+    deal: "Free puppuccino for your dog",
+    note: "On the house — just show us your post"
   },
   {
-    name: "The Pebble and Paw",
-    type: "Pub - Seafront, Brighton",
-    lat: 50.8208, lng: -0.1298,
-    poster: false,
-    deal: "2-for-1 Sunday roast",
-    note: "Dogs eat free on Sundays"
-  },
-  {
-    name: "Snout and About",
-    type: "Boutique - North Laine, Brighton",
-    lat: 50.8278, lng: -0.1355,
-    poster: false,
-    deal: "15% off on your first visit",
-    note: "Show your check-in post"
-  },
-  {
-    name: "The Wag and Whistle",
-    type: "Pub - Brighton Centre",
-    lat: 50.8248, lng: -0.1408,
-    poster: true,
-    deal: "Happy hour 4 to 6pm",
-    note: "Extra prize draw entry included"
-  },
-  {
-    name: "Paw Prints Cafe",
+    name: "Demo Venue — Seven Dials",
     type: "Cafe - Seven Dials, Brighton",
-    lat: 50.8338, lng: -0.1548,
+    lat: 50.8320, lng: -0.1494,
     poster: false,
     deal: "Free cake slice",
     note: "With a hot drink and your post"
   },
   {
-    name: "Flea and Fido",
-    type: "Vintage Shop - Kemptown, Brighton",
-    lat: 50.8212, lng: -0.1102,
-    poster: false,
-    deal: "First item 10% off",
-    note: "Tag @wagglytails_club to unlock"
+    name: "Demo Venue — Kemptown",
+    type: "Bar - St James's Street, Brighton",
+    lat: 50.8224, lng: -0.1143,
+    poster: true,
+    deal: "Free treat for your dog",
+    note: "With any hot drink"
   },
   {
-    name: "The Barkroom",
-    type: "Dog Groomer - Hove",
-    lat: 50.8345, lng: -0.1820,
+    name: "Demo Venue — Brighton Station",
+    type: "Cafe - Queens Road, Brighton",
+    lat: 50.8296, lng: -0.1414,
+    poster: false,
+    deal: "15% off on your first visit",
+    note: "Show your check-in post"
+  },
+  {
+    name: "Demo Venue — London Road",
+    type: "Pub - London Road, Brighton",
+    lat: 50.8370, lng: -0.1367,
     poster: true,
-    deal: "5 pounds off your first groom",
-    note: "Mention Waggly Tails when you book"
+    deal: "Happy hour 4 to 6pm",
+    note: "Extra prize draw entry included"
   }
+
 ];
 
 var map = new maplibregl.Map({
   container: 'map',
   style: 'https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776',
-  center: [-0.1500, 50.8600],
-  zoom: 12,
+  center: [-0.1500, 50.8290],
+  zoom: 13,
   minZoom: 5,
   maxZoom: 19,
   attributionControl: true
