@@ -10,7 +10,12 @@
 
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
+
+html, body {
+  height:100%;
+  width:100%;
+  font-family:Arial, sans-serif;
+}
 
 #map {
   position:absolute;
@@ -204,7 +209,6 @@ button.filter-btn.active {
     <input id="searchBox" type="text" placeholder="Search venues...">
     <button class="filter-btn active" data-filter="All">All</button>
     <button class="filter-btn" data-filter="Cafe">Cafes</button>
-    <button class="filter-btn" data-filter="Pub">Pubs</button>
     <button class="filter-btn" data-filter="Restaurant">Restaurants</button>
     <button class="filter-btn" data-filter="Shop">Shops</button>
     <button class="filter-btn" data-filter="Accommodation">Accommodation</button>
@@ -222,8 +226,10 @@ button.filter-btn.active {
 </div>
 
 <script>
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-REPLACE-WITH-PUBLISHED-LINK/pub?gid=0&single=true&output=csv";
-let allVenues = [];
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uZBCC_1X-zdLeyW10Bw_E5N63fToD-dv3PcwjfhQHX4/gviz/tq?tqx=out:csv&sheet=Sheet1";
+
+let venues = [];
+let markers = [];
 let activeFilter = "All";
 let searchTerm = "";
 let userLocationMarker = null;
@@ -232,7 +238,7 @@ const map = new maplibregl.Map({
   container: "map",
   style: "https://api.protomaps.com/styles/v4/light/en.json?key=d8a0fbbaf70fb776",
   center: [-0.1450, 50.8270],
-  zoom: 12.5,
+  zoom: 12,
   minZoom: 5,
   maxZoom: 19,
   attributionControl: true
@@ -288,22 +294,13 @@ function csvToObjects(csv) {
 }
 
 function normaliseVenue(row) {
-  let lat = parseFloat(row.Latitude);
-  let lng = parseFloat(row.Longitude);
-
-  if (Math.abs(lat) < 1 && Math.abs(lng) > 40) {
-    const oldLat = lat;
-    lat = lng;
-    lng = oldLat;
-  }
-
   return {
     name: clean(row.Name),
     type: clean(row.Type),
     area: clean(row.Area),
     address: clean(row.Address),
-    lat: lat,
-    lng: lng,
+    lat: parseFloat(row.Latitude),
+    lng: parseFloat(row.Longitude),
     reward: clean(row.Reward),
     website: clean(row.Website),
     instagram: clean(row.Instagram),
@@ -318,7 +315,7 @@ async function loadVenues() {
     const response = await fetch(GOOGLE_SHEET_CSV_URL + "&cachebust=" + Date.now());
     const csv = await response.text();
 
-    allVenues = csvToObjects(csv)
+    venues = csvToObjects(csv)
       .map(normaliseVenue)
       .filter(v =>
         v.name &&
@@ -328,7 +325,11 @@ async function loadVenues() {
         !isNaN(v.lng)
       );
 
-    updateMapData();
+    renderMarkers();
+
+    setTimeout(() => map.resize(), 300);
+    setTimeout(() => map.resize(), 1000);
+
   } catch (error) {
     console.error("Could not load venue sheet:", error);
     document.getElementById("venueCount").textContent = "Sheet error";
@@ -336,8 +337,9 @@ async function loadVenues() {
 }
 
 function getFilteredVenues() {
-  return allVenues.filter(v => {
+  return venues.filter(v => {
     const text = `${v.name} ${v.type} ${v.area} ${v.address}`.toLowerCase();
+
     const matchesSearch = text.includes(searchTerm);
 
     const matchesFilter =
@@ -349,119 +351,41 @@ function getFilteredVenues() {
   });
 }
 
-function venuesToGeoJSON(venues) {
-  return {
-    type: "FeatureCollection",
-    features: venues.map((v, index) => ({
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [v.lng, v.lat]
-      },
-      properties: {
-        id: index,
-        name: v.name,
-        type: v.type,
-        area: v.area,
-        address: v.address,
-        reward: v.reward,
-        website: v.website,
-        instagram: v.instagram,
-        featured: v.featured ? "yes" : "no"
-      }
-    }))
-  };
-}
+function renderMarkers() {
+  markers.forEach(marker => marker.remove());
+  markers = [];
 
-function addVenueLayers() {
-  map.addSource("venues", {
-    type: "geojson",
-    data: venuesToGeoJSON([])
-  });
-
-  map.addLayer({
-    id: "venue-circles",
-    type: "circle",
-    source: "venues",
-    paint: {
-      "circle-radius": [
-        "case",
-        ["==", ["get", "featured"], "yes"], 15,
-        13
-      ],
-      "circle-color": [
-        "case",
-        ["==", ["get", "featured"], "yes"], "#1a3a5c",
-        "#3d8bbd"
-      ],
-      "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 3
-    }
-  });
-
-  map.addLayer({
-    id: "venue-paws",
-    type: "symbol",
-    source: "venues",
-    layout: {
-      "text-field": "🐾",
-      "text-size": 16,
-      "text-allow-overlap": true,
-      "text-ignore-placement": true
-    }
-  });
-
-  map.addLayer({
-    id: "featured-stars",
-    type: "symbol",
-    source: "venues",
-    filter: ["==", ["get", "featured"], "yes"],
-    layout: {
-      "text-field": "★",
-      "text-size": 11,
-      "text-offset": [1, -1],
-      "text-allow-overlap": true,
-      "text-ignore-placement": true
-    },
-    paint: {
-      "text-color": "#e8a020",
-      "text-halo-color": "#ffffff",
-      "text-halo-width": 1
-    }
-  });
-
-  map.on("click", "venue-circles", openVenuePopup);
-  map.on("click", "venue-paws", openVenuePopup);
-
-  map.on("mouseenter", "venue-circles", () => {
-    map.getCanvas().style.cursor = "pointer";
-  });
-
-  map.on("mouseleave", "venue-circles", () => {
-    map.getCanvas().style.cursor = "";
-  });
-}
-
-function updateMapData() {
   const visibleVenues = getFilteredVenues();
-  const source = map.getSource("venues");
 
-  if (source) {
-    source.setData(venuesToGeoJSON(visibleVenues));
-  }
+  visibleVenues.forEach(v => {
+    const markerColor = v.featured ? "#1a3a5c" : "#3d8bbd";
+
+    const popup = new maplibregl.Popup({ offset: 25, maxWidth: "280px" })
+      .setHTML(createPopupHTML(v));
+
+    const marker = new maplibregl.Marker({ color: markerColor })
+      .setLngLat([v.lng, v.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    markers.push(marker);
+  });
 
   document.getElementById("venueCount").textContent =
-    visibleVenues.length + " venues live";
-}
+    markers.length + " venues live";
 
-function openVenuePopup(e) {
-  const props = e.features[0].properties;
-  const coordinates = e.features[0].geometry.coordinates.slice();
+  if (markers.length > 0) {
+    const bounds = new maplibregl.LngLatBounds();
 
-  new maplibregl.Popup({ offset: 18, maxWidth: "280px" })
-    .setLngLat(coordinates)
-    .setHTML(createPopupHTML(props))
-    .addTo(map);
+    visibleVenues.forEach(v => {
+      bounds.extend([v.lng, v.lat]);
+    });
+
+    map.fitBounds(bounds, {
+      padding: 70,
+      maxZoom: 14
+    });
+  }
 }
 
 function createPopupHTML(v) {
@@ -473,7 +397,7 @@ function createPopupHTML(v) {
     ? `<a href="${escapeHTML(v.instagram)}" target="_blank" rel="noopener">View Instagram</a>`
     : "";
 
-  const badge = v.featured === "yes"
+  const badge = v.featured
     ? `<div class="p-badge">⭐ Featured Waggly Tails venue</div>`
     : `<div class="p-badge">📍 Listed Waggly Tails venue</div>`;
 
@@ -511,13 +435,13 @@ document.querySelectorAll(".filter-btn[data-filter]").forEach(button => {
     document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
     this.classList.add("active");
     activeFilter = this.dataset.filter;
-    updateMapData();
+    renderMarkers();
   });
 });
 
 document.getElementById("searchBox").addEventListener("input", function() {
   searchTerm = this.value.toLowerCase().trim();
-  updateMapData();
+  renderMarkers();
 });
 
 document.getElementById("nearMeBtn").addEventListener("click", function() {
@@ -549,9 +473,9 @@ document.getElementById("nearMeBtn").addEventListener("click", function() {
 });
 
 map.on("load", function() {
-  addVenueLayers();
   loadVenues();
   setTimeout(() => map.resize(), 300);
+  setTimeout(() => map.resize(), 1000);
 });
 
 window.addEventListener("resize", () => map.resize());
