@@ -283,11 +283,10 @@ el.className =
   (v.featured ? "paw-featured" : "paw-standard");
 
 if(v.featured){
-  el.innerHTML =
-    '<img src="gold-paw.png" width="34" height="34">';
-}else{
-  el.innerHTML =
-    '<img src="blue-paw.png" width="34" height="34">';
+ if (v.featured) {
+  el.innerHTML = '<img src="./gold-paw.png" width="34" height="34" style="display:block;">';
+} else {
+  el.innerHTML = '<img src="./blue-paw.png" width="34" height="34" style="display:block;">';
 }
 
     const popup = new maplibregl.Popup({ offset: 25, maxWidth: "280px" })
