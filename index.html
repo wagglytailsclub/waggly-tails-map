@@ -10,103 +10,175 @@
 
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; width:100%; font-family:Arial,sans-serif; }
 
-#map { position:absolute; top:110px; left:0; right:0; bottom:0; }
+html, body {
+  height:100%;
+  width:100%;
+  font-family:Arial,sans-serif;
+}
+
+#map {
+  position:absolute;
+  top:110px;
+  left:0;
+  right:0;
+  bottom:0;
+}
 
 #header {
-  position:fixed; top:0; left:0; right:0; z-index:100;
-  background:#1a3a5c; color:white; padding:10px 14px;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:100;
+  background:#1a3a5c;
+  color:white;
+  padding:10px 14px;
   box-shadow:0 2px 8px rgba(0,0,0,0.25);
 }
 
-.header-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.h-paw { font-size:22px; }
-.h-title { font-size:17px; font-family:Georgia,serif; }
-.h-sub { color:#b9d1e8; font-size:11px; margin-left:auto; }
-
-.h-pill {
-  background:#e8a020; color:#fff; font-size:11px; font-weight:bold;
-  border-radius:12px; padding:4px 10px;
+.header-top {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
 }
 
-#controls { display:flex; gap:6px; overflow-x:auto; }
+.h-paw {
+  font-size:22px;
+}
+
+.h-title {
+  font-size:17px;
+  font-family:Georgia,serif;
+}
+
+.h-sub {
+  color:#b9d1e8;
+  font-size:11px;
+  margin-left:auto;
+}
+
+.h-pill {
+  background:#e8a020;
+  color:#fff;
+  font-size:11px;
+  font-weight:bold;
+  border-radius:12px;
+  padding:4px 10px;
+}
+
+#controls {
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+}
 
 #searchBox {
-  min-width:170px; border:none; border-radius:14px;
-  padding:7px 11px; font-size:12px;
+  min-width:170px;
+  border:none;
+  border-radius:14px;
+  padding:7px 11px;
+  font-size:12px;
 }
 
 button.filter-btn {
-  border:none; border-radius:14px; padding:7px 11px; font-size:12px;
-  cursor:pointer; background:#fff; color:#1a3a5c; white-space:nowrap;
+  border:none;
+  border-radius:14px;
+  padding:7px 11px;
+  font-size:12px;
+  cursor:pointer;
+  background:#fff;
+  color:#1a3a5c;
+  white-space:nowrap;
 }
 
-button.filter-btn.active { background:#e8a020; color:#fff; }
+button.filter-btn.active {
+  background:#e8a020;
+  color:#fff;
+}
 
-.paw-marker{
+.paw-marker {
   width:38px;
   height:38px;
   cursor:pointer;
   transition:all .2s ease;
-  line-height:1;
 }
 
-.paw-marker img{
+.paw-marker img {
   width:38px;
   height:38px;
   display:block;
 }
 
-.paw-marker:hover{
+.paw-marker:hover {
   transform:scale(1.2);
 }
 
-.paw-featured{
+.paw-featured {
   filter:drop-shadow(0 0 6px gold);
 }
 
-.paw-featured{
-  filter:
-    drop-shadow(0 0 6px gold)
-    drop-shadow(0 2px 3px rgba(0,0,0,.3));
+.wt-popup {
+  font-family:Arial,sans-serif;
+  width:250px;
 }
 
-.wt-popup { font-family:Arial,sans-serif; width:250px; }
-.p-name { font-size:16px; font-weight:bold; color:#1a3a5c; margin-bottom:3px; }
-.p-type { font-size:12px; color:#777; margin-bottom:10px; }
+.p-name {
+  font-size:16px;
+  font-weight:bold;
+  color:#1a3a5c;
+  margin-bottom:3px;
+}
+
+.p-type {
+  font-size:12px;
+  color:#777;
+  margin-bottom:10px;
+}
 
 .p-reward {
-  background:#e8f4f0; border:1px solid #7ecfb5;
-  border-radius:8px; padding:9px 10px; margin-bottom:9px;
+  background:#e8f4f0;
+  border:1px solid #7ecfb5;
+  border-radius:8px;
+  padding:9px 10px;
+  margin-bottom:9px;
 }
 
-.p-reward b { display:block; color:#1a6b50; font-size:13px; margin-bottom:3px; }
-.p-reward span { color:#2a8060; font-size:13px; }
+.p-reward b {
+  display:block;
+  color:#1a6b50;
+  font-size:13px;
+  margin-bottom:3px;
+}
+
+.p-reward span {
+  color:#2a8060;
+  font-size:13px;
+}
 
 .p-links a {
-  display:block; background:#1a3a5c; color:#fff; text-decoration:none;
-  text-align:center; border-radius:8px; padding:8px; font-size:12px; margin-top:6px;
+  display:block;
+  background:#1a3a5c;
+  color:#fff;
+  text-decoration:none;
+  text-align:center;
+  border-radius:8px;
+  padding:8px;
+  font-size:12px;
+  margin-top:6px;
 }
 
 .p-badge {
-  font-size:11px; background:#fff4e0; border:1px solid #e8c96c;
-  border-radius:6px; padding:6px 8px; color:#8a5c00; margin-top:8px;
-}
-.paw-marker{
-  font-size:32px;
-  cursor:pointer;
-  transition:all .2s ease;
-  line-height:1;
-}
-
-.paw-marker:hover{
-  transform:scale(1.2);
+  font-size:11px;
+  background:#fff4e0;
+  border:1px solid #e8c96c;
+  border-radius:6px;
+  padding:6px 8px;
+  color:#8a5c00;
+  margin-top:8px;
 }
 
-.paw-featured{
-  filter:drop-shadow(0 0 6px gold);
-}
 .maplibregl-popup-content {
   border-radius:12px !important;
   box-shadow:0 4px 16px rgba(0,0,0,0.18) !important;
@@ -115,9 +187,16 @@ button.filter-btn.active { background:#e8a020; color:#fff; }
 }
 
 #debug {
-  position:fixed; right:12px; bottom:12px; z-index:200;
-  background:white; color:#1a3a5c; border:1px solid #ddd;
-  border-radius:8px; padding:8px 10px; font-size:11px;
+  position:fixed;
+  right:12px;
+  bottom:12px;
+  z-index:200;
+  background:white;
+  color:#1a3a5c;
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:11px;
   box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
 
@@ -264,7 +343,6 @@ function normaliseVenue(row) {
 function getFilteredVenues() {
   return venues.filter(v => {
     const text = `${v.name} ${v.type} ${v.area} ${v.address}`.toLowerCase();
-
     const matchesSearch = text.includes(searchTerm);
 
     const matchesFilter =
@@ -285,35 +363,26 @@ function renderMarkers() {
   visibleVenues.forEach(v => {
     const el = document.createElement("div");
 
-el.className =
-  "paw-marker " +
-  (v.featured ? "paw-featured" : "paw-standard");
+    el.className =
+      "paw-marker " +
+      (v.featured ? "paw-featured" : "paw-standard");
 
-if(v.featured){
- if (v.featured) {
-  el.innerHTML = '<img src="./gold-paw.png" width="34" height="34" style="display:block;">';
-} else {
-  el.innerHTML = '<img src="./blue-paw.png" width="34" height="34" style="display:block;">';
-}
+    if (v.featured) {
+      el.innerHTML = '<img src="./gold-paw.png" alt="Featured Waggly Tails venue" onerror="this.outerHTML=\'🐾\';">';
+    } else {
+      el.innerHTML = '<img src="./blue-paw.png" alt="Waggly Tails venue" onerror="this.outerHTML=\'🐾\';">';
+    }
 
     const popup = new maplibregl.Popup({ offset: 25, maxWidth: "280px" })
       .setHTML(createPopupHTML(v));
 
-    const paw = document.createElement("div");
-
-paw.className =
-  "paw-marker " +
-  (v.featured ? "paw-featured" : "");
-
-paw.innerHTML = "🐾";
-
-const marker = new maplibregl.Marker({
-  element: paw,
-  anchor: "center"
-})
-.setLngLat([v.lng, v.lat])
-.setPopup(popup)
-.addTo(map);
+    const marker = new maplibregl.Marker({
+      element: el,
+      anchor: "center"
+    })
+    .setLngLat([v.lng, v.lat])
+    .setPopup(popup)
+    .addTo(map);
 
     markers.push(marker);
   });
