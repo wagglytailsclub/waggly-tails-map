@@ -391,14 +391,42 @@ function normaliseVenue(row) {
 
 function getFilteredVenues() {
   return venues.filter(function(v) {
-    const text = (v.name + " " + v.type + " " + v.area + " " + v.address).toLowerCase();
+    const type = String(v.type || "")
+      .toLowerCase()
+      .replace("é", "e");
+
+    const text = (
+      v.name + " " +
+      v.type + " " +
+      v.area + " " +
+      v.address
+    )
+    .toLowerCase()
+    .replace("é", "e");
+
+    const filter = String(activeFilter || "")
+      .toLowerCase()
+      .replace("é", "e");
 
     const matchesSearch = text.includes(searchTerm);
 
-    const matchesFilter =
-      activeFilter === "All" ||
-      v.type.toLowerCase().includes(activeFilter.toLowerCase()) ||
-      (activeFilter === "Featured" && v.featured);
+    let matchesFilter = false;
+
+    if (filter === "all") {
+      matchesFilter = true;
+    } else if (filter === "featured") {
+      matchesFilter = v.featured;
+    } else if (filter === "cafe") {
+      matchesFilter =
+        type.includes("cafe") ||
+        type.includes("coffee");
+    } else if (filter === "shop") {
+      matchesFilter =
+        type.includes("shop") ||
+        type.includes("store");
+    } else {
+      matchesFilter = type.includes(filter);
+    }
 
     return matchesSearch && matchesFilter;
   });
