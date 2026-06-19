@@ -103,21 +103,32 @@ button.filter-btn.active {
 }
 
 .paw-marker {
-  font-size: 34px;
+  width: 42px;
+  height: 42px;
+  background: #ffffff;
+  border: 2px solid #1a3a5c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
   line-height: 1;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.28);
 }
 
 .paw-marker:hover {
-  transform: scale(1.2);
+  transform: scale(1.18);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.35);
 }
 
 .paw-featured {
-  filter:
-    drop-shadow(0 0 6px gold)
-    drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+  background: #fff8df;
+  border: 2px solid #e8a020;
+  box-shadow:
+    0 0 0 3px rgba(232,160,32,0.25),
+    0 3px 8px rgba(0,0,0,0.28);
 }
 
 .wt-popup {
